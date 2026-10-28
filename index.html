@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loopi — Belajar Perulangan Bahasa C</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --biru:#3b5bfd; --ungu:#7c3aed; --gelap:#0f172a; --abu:#64748b;
+    --bg:#f4f6ff; --kartu:#fff; --hijau:#16a34a; --merah:#dc2626;
+    --kuning:#f59e0b; --radius:18px; --shadow:0 10px 40px rgba(59,91,253,.10);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--gelap);line-height:1.65;overflow-x:hidden}
+
+  nav{position:sticky;top:0;z-index:200;background:rgba(255,255,255,.9);backdrop-filter:blur(12px);
+    border-bottom:1px solid rgba(59,91,253,.10);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.1rem;color:var(--biru);flex-shrink:0}
+  .progress-wrap{flex:1;max-width:400px;display:flex;align-items:center;gap:12px}
+  .progress-bar{flex:1;height:10px;background:rgba(59,91,253,.15);border-radius:50px;overflow:hidden}
+  .progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--biru),var(--ungu));border-radius:50px;transition:width .5s ease}
+  .progress-text{font-size:.8rem;font-weight:700;color:var(--ungu);white-space:nowrap}
+  .reset-btn{background:transparent;border:1.5px solid #e2e8f0;color:var(--abu);padding:6px 14px;border-radius:50px;
+    font-family:inherit;font-size:.78rem;cursor:pointer;transition:.2s;font-weight:600}
+  .reset-btn:hover{border-color:var(--merah);color:var(--merah)}
+  @media(max-width:640px){.progress-text{display:none}}
+
+  .hero{display:grid;grid-template-columns:1.2fr 1fr;gap:40px;align-items:center;max-width:1100px;margin:0 auto;padding:70px 24px 50px}
+  .hero-badge{display:inline-block;background:rgba(59,91,253,.1);color:var(--biru);padding:6px 16px;border-radius:50px;font-size:.8rem;font-weight:600;margin-bottom:18px}
+  .hero h1{font-size:clamp(2rem,4vw,3rem);font-weight:800;line-height:1.2;margin-bottom:16px}
+  .hero h1 span{color:var(--biru)}
+  .hero p{color:var(--abu);font-size:1.05rem;margin-bottom:26px}
+  .btn{display:inline-block;background:linear-gradient(135deg,var(--biru),var(--ungu));color:#fff;padding:14px 32px;border-radius:50px;
+    font-weight:600;text-decoration:none;border:none;cursor:pointer;font-family:inherit;box-shadow:0 8px 24px rgba(59,91,253,.35);transition:.25s;font-size:1rem}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(59,91,253,.45)}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+  .maskot-box{display:flex;justify-content:center}
+  .maskot-box svg{width:220px;height:auto;filter:drop-shadow(0 20px 30px rgba(124,58,237,.25))}
+  @media(max-width:768px){.hero{grid-template-columns:1fr;text-align:center;padding-top:40px}.maskot-box svg{width:160px}}
+
+  .section-wrap{max-width:1100px;margin:0 auto;padding:20px 24px 60px;position:relative}
+  .section-wrap.locked > .locked-content{filter:blur(5px);pointer-events:none;user-select:none;opacity:.5}
+  .lock-overlay{position:absolute;inset:20px 24px 60px;display:none;align-items:center;justify-content:center;
+    background:rgba(244,246,255,.55);backdrop-filter:blur(2px);border-radius:24px;z-index:10}
+  .section-wrap.locked .lock-overlay{display:flex}
+  .lock-card{background:#fff;border-radius:20px;padding:32px 40px;text-align:center;box-shadow:0 20px 50px rgba(15,23,42,.15);max-width:420px;animation:fadeIn .4s}
+  .lock-icon{font-size:2.6rem;margin-bottom:12px}
+  .lock-card h3{font-size:1.15rem;margin-bottom:8px}
+  .lock-card p{font-size:.88rem;color:var(--abu)}
+  .lock-card .syarat{display:inline-block;margin-top:12px;background:rgba(59,91,253,.1);color:var(--biru);
+    padding:6px 16px;border-radius:50px;font-size:.8rem;font-weight:600}
+  .section-wrap.active-topic > .locked-content{border:2px solid rgba(59,91,253,.25);border-radius:24px;padding:32px;background:#fff;box-shadow:0 20px 60px rgba(59,91,253,.12)}
+  @media(max-width:640px){.section-wrap.active-topic > .locked-content{padding:20px}}
+
+  .status-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:50px;font-size:.72rem;font-weight:700;margin-bottom:14px}
+  .status-badge.done{background:rgba(22,163,74,.12);color:var(--hijau)}
+  .status-badge.active{background:rgba(59,91,253,.12);color:var(--biru)}
+
+  .sec-title{font-size:clamp(1.4rem,3vw,1.9rem);font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+  .sec-title .num{background:linear-gradient(135deg,var(--biru),var(--ungu));color:#fff;width:38px;height:38px;border-radius:12px;
+    display:grid;place-items:center;font-size:1rem;flex-shrink:0}
+  .sec-sub{color:var(--abu);margin-bottom:24px}
+
+  .card{background:#fff;border-radius:var(--radius);padding:28px;box-shadow:var(--shadow)}
+
+  .tabs{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+  .tab-btn{padding:10px 22px;border-radius:50px;border:2px solid rgba(59,91,253,.2);background:#fff;color:var(--abu);
+    font-family:inherit;font-weight:600;cursor:pointer;font-size:.9rem;transition:.2s}
+  .tab-btn.active{background:var(--biru);color:#fff;border-color:var(--biru)}
+  .tab-panel{display:none;animation:fadeIn .3s}
+  .tab-panel.active{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  pre.kode{background:#0f172a;color:#e2e8f0;border-radius:14px;padding:20px;overflow-x:auto;font-family:'JetBrains Mono',monospace;
+    font-size:.85rem;line-height:1.7;position:relative;margin:14px 0}
+  pre.kode .kw{color:#c792ea} pre.kode .str{color:#c3e88d} pre.kode .num{color:#f78c6c}
+  pre.kode .cm{color:#5c677d;font-style:italic} pre.kode .fn{color:#82aaff}
+  .copy-btn{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.1);color:#fff;border:none;padding:6px 12px;
+    border-radius:8px;font-size:.72rem;cursor:pointer;font-family:inherit;transition:.2s}
+  .copy-btn:hover{background:rgba(255,255,255,.2)}
+
+  .kasus-head{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+  .kasus-icon{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;font-size:1.4rem;flex-shrink:0;
+    background:linear-gradient(135deg,rgba(59,91,253,.12),rgba(124,58,237,.12))}
+  .kasus-head h3{font-size:1.2rem}
+  .kasus-head .tag{display:inline-block;background:rgba(124,58,237,.12);color:var(--ungu);padding:2px 10px;border-radius:20px;
+    font-size:.72rem;font-weight:600;margin-left:8px;vertical-align:middle}
+  .card p{color:var(--abu);margin-bottom:12px}
+  .analogi{background:rgba(245,158,11,.1);border-left:4px solid var(--kuning);padding:12px 16px;border-radius:8px;margin:14px 0;font-size:.9rem}
+  .analogi strong{color:#b45309}
+
+  .contoh-kode{background:#f0f4ff;border:2px solid rgba(59,91,253,.2);border-radius:16px;padding:24px;margin-bottom:24px}
+  .contoh-kode .badge-contoh{display:inline-flex;align-items:center;gap:6px;background:rgba(59,91,253,.15);color:var(--biru);
+    padding:4px 14px;border-radius:50px;font-size:.72rem;font-weight:700;margin-bottom:12px}
+  .contoh-kode h4{font-size:1.05rem;margin-bottom:8px;color:var(--gelap)}
+  .contoh-kode p{color:var(--abu);font-size:.9rem}
+
+  .latihan{background:linear-gradient(135deg,#eef2ff,#f5f3ff);border:2px dashed rgba(59,91,253,.3);border-radius:16px;padding:24px;margin-top:20px}
+  .latihan-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+  .latihan-head h4{font-size:1rem;color:var(--biru);display:flex;align-items:center;gap:8px}
+  .skor-pill{background:#fff;padding:6px 16px;border-radius:50px;font-size:.8rem;font-weight:700;color:var(--ungu);box-shadow:0 4px 12px rgba(59,91,253,.12)}
+  .editor{width:100%;min-height:130px;padding:16px;border-radius:12px;border:2px solid rgba(59,91,253,.2);
+    font-family:'JetBrains Mono',monospace;font-size:.85rem;line-height:1.6;resize:vertical;background:#fff;transition:.2s}
+  .editor:focus{outline:none;border-color:var(--biru);box-shadow:0 0 0 4px rgba(59,91,253,.1)}
+  .latihan-actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+  .btn-sm{padding:10px 22px;border-radius:50px;border:none;font-family:inherit;font-weight:600;font-size:.85rem;cursor:pointer;transition:.2s}
+  .btn-check{background:linear-gradient(135deg,var(--biru),var(--ungu));color:#fff}
+  .btn-check:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(59,91,253,.3)}
+  .btn-check:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+  .btn-run{background:#fff;color:var(--hijau);border:2px solid var(--hijau)}
+  .btn-run:hover{background:var(--hijau);color:#fff}
+  .btn-run:disabled{opacity:.5;cursor:not-allowed}
+  .feedback{margin-top:14px;padding:14px 18px;border-radius:12px;font-size:.9rem;display:none;animation:fadeIn .3s}
+  .feedback.show{display:block}
+  .feedback.ok{background:rgba(22,163,74,.1);border-left:4px solid var(--hijau);color:#166534}
+  .feedback.no{background:rgba(220,38,38,.08);border-left:4px solid var(--merah);color:#991b1b}
+  .feedback.info{background:rgba(59,91,253,.08);border-left:4px solid var(--biru);color:#1e40af}
+  .output-panel{margin-top:14px;background:#0f172a;color:#c3e88d;border-radius:12px;padding:16px;
+    font-family:'JetBrains Mono',monospace;font-size:.85rem;display:none;white-space:pre-wrap;line-height:1.6;border-left:4px solid var(--hijau)}
+  .output-panel.show{display:block;animation:fadeIn .3s}
+  .output-panel .lbl-out{color:#5c677d;font-size:.72rem;margin-bottom:6px;font-family:'Poppins',sans-serif}
+  .output-panel .err{color:#f78c6c}
+
+  .paham-wrap{margin-top:24px;text-align:center;padding-top:20px;border-top:1px dashed rgba(59,91,253,.2)}
+
+  .soal .q{font-weight:600;margin-bottom:14px;display:flex;gap:10px;align-items:flex-start}
+  .soal .q .qnum{background:linear-gradient(135deg,var(--biru),var(--ungu));color:#fff;width:28px;height:28px;border-radius:8px;
+    display:grid;place-items:center;font-size:.8rem;flex-shrink:0;margin-top:2px}
+  .opsi{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+  .opsi label{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:10px;border:2px solid #e2e8f0;
+    cursor:pointer;transition:.2s;font-size:.9rem}
+  .opsi label:hover{border-color:rgba(59,91,253,.4);background:#f8faff}
+  .opsi input[type=radio]{accent-color:var(--biru);width:18px;height:18px}
+  .pembahasan{margin-top:12px;padding:12px 16px;background:rgba(22,163,74,.08);border-radius:10px;font-size:.85rem;color:#166534;display:none}
+  .pembahasan.show{display:block}
+
+  .rekap-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin:24px 0}
+  .rekap-item{background:#fff;border-radius:14px;padding:18px;text-align:center;box-shadow:var(--shadow)}
+  .rekap-item .angka{font-size:1.6rem;font-weight:800;color:var(--ungu)}
+  .rekap-item .lbl{font-size:.78rem;color:var(--abu);margin-top:4px}
+  .hasil-besar{background:linear-gradient(135deg,var(--biru),var(--ungu));color:#fff;border-radius:24px;padding:40px;text-align:center;margin-top:20px}
+  .hasil-besar .angka-besar{font-size:4rem;font-weight:800;line-height:1}
+  .hasil-besar .label{opacity:.85;font-size:.95rem;margin-bottom:8px}
+  .hasil-besar .pesan{margin-top:16px;font-size:1.05rem;opacity:.95}
+
+  .tips{display:flex;gap:14px;align-items:flex-start;background:#fff;border-radius:16px;padding:18px 20px;
+    box-shadow:var(--shadow);margin:20px 0;border-left:4px solid var(--ungu)}
+  .tips svg{width:56px;height:56px;flex-shrink:0}
+  .tips-content strong{color:var(--ungu);display:block;margin-bottom:4px;font-size:.9rem}
+  .tips-content p{font-size:.88rem;color:var(--abu);margin:0}
+
+  .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(120px);
+    background:linear-gradient(135deg,var(--biru),var(--ungu));color:#fff;padding:14px 28px;border-radius:50px;
+    font-weight:600;font-size:.9rem;box-shadow:0 12px 30px rgba(59,91,253,.4);z-index:999;
+    transition:transform .4s ease;display:flex;align-items:center;gap:10px}
+  .toast.show{transform:translateX(-50%) translateY(0)}
+
+  footer{text-align:center;padding:40px 24px;color:var(--abu);font-size:.85rem;border-top:1px solid rgba(59,91,253,.1);margin-top:40px}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  .maskot-bob{animation:bob 3s ease-in-out infinite}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">
+    <svg width="28" height="28" viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#3b5bfd"/><text x="50" y="68" font-size="52" text-anchor="middle" fill="#fff" font-family="monospace" font-weight="bold">∞</text></svg>
+    Loopi<span style="color:var(--abu);font-weight:500">.dev</span>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-text" id="progressText">0 / 7</div>
+  </div>
+  <button class="reset-btn" id="btnReset">↺ Reset</button>
+</nav>
+
+<header class="hero">
+  <div>
+    <span class="hero-badge">🖥️ Bahasa C · Kelas 10 SMK</span>
+    <h1>Belajar <span>Perulangan</span> Bareng Loopi</h1>
+    <p>7 topik berurutan: materi, 2 studi kasus, dan 5 soal HOTS acak dari bank soal. Tiap topik terkunci sampai kamu selesai topik sebelumnya. Tiap percobaan salah −10 poin! 🦉</p>
+    <a href="#topik1" class="btn">Mulai dari Topik 1 →</a>
+  </div>
+  <div class="maskot-box">
+    <svg class="maskot-bob" viewBox="0 0 200 220">
+      <ellipse cx="100" cy="205" rx="55" ry="10" fill="rgba(59,91,253,.12)"/>
+      <ellipse cx="100" cy="130" rx="62" ry="70" fill="#7c3aed"/>
+      <ellipse cx="100" cy="135" rx="50" ry="58" fill="#a78bfa"/>
+      <ellipse cx="52" cy="140" rx="18" ry="38" fill="#6d28d9" transform="rotate(-15 52 140)"/>
+      <ellipse cx="148" cy="140" rx="18" ry="38" fill="#6d28d9" transform="rotate(15 148 140)"/>
+      <circle cx="100" cy="82" r="55" fill="#8b5cf6"/>
+      <path d="M60 40 L70 15 L85 38 Z" fill="#6d28d9"/>
+      <path d="M140 40 L130 15 L115 38 Z" fill="#6d28d9"/>
+      <circle cx="78" cy="82" r="24" fill="#fff"/>
+      <circle cx="122" cy="82" r="24" fill="#fff"/>
+      <circle cx="80" cy="84" r="11" fill="#1e1b4b"/>
+      <circle cx="124" cy="84" r="11" fill="#1e1b4b"/>
+      <circle cx="84" cy="80" r="4" fill="#fff"/>
+      <circle cx="128" cy="80" r="4" fill="#fff"/>
+      <path d="M100 100 L90 114 L110 114 Z" fill="#f59e0b"/>
+      <text x="100" y="165" font-size="42" text-anchor="middle" fill="#fff" font-family="monospace" font-weight="bold" opacity=".9">∞</text>
+    </svg>
+  </div>
+</header>
+
+<!-- ============ TOPIK 1 ============ -->
+<div class="section-wrap" id="topik1" data-topik="1">
+  <div class="locked-content">
+    <span class="status-badge active" data-badge>🔓 Topik 1 · Siap Dipelajari</span>
+    <h2 class="sec-title"><span class="num">1</span> Apa itu Perulangan?</h2>
+    <p class="sec-sub">Konsep dasar sebelum masuk ke kode.</p>
+    <div class="card">
+      <p><b>Perulangan (looping)</b> adalah perintah untuk menjalankan blok kode <b>berulang kali</b> selama kondisi tertentu terpenuhi. Tanpa perulangan, kita harus menulis kode yang sama berulang-ulang — tidak efisien!</p>
+      <div class="analogi">
+        <strong>💡 Analogi:</strong> Saat kamu lari di lapangan, kamu menghitung "putaran 1, putaran 2, ..." sampai target 5 putaran. Itu adalah perulangan! Kondisi berhenti = "putaran ke-5 tercapai".
+      </div>
+      <p><b>Tiga komponen wajib perulangan:</b></p>
+      <ul style="margin:8px 0 12px 22px;color:var(--abu);font-size:.92rem">
+        <li><b>Nilai awal</b> — dari mana perulangan mulai</li>
+        <li><b>Kondisi berhenti</b> — kapan perulangan berhenti</li>
+        <li><b>Perubahan nilai</b> — bagaimana nilai berubah tiap iterasi</li>
+      </ul>
+      <p>C memiliki 3 jenis perulangan: <code>for</code>, <code>while</code>, dan <code>do-while</code>. Kita akan pelajari lewat praktik!</p>
+      <div class="tips">
+        <svg viewBox="0 0 200 220"><circle cx="100" cy="82" r="55" fill="#8b5cf6"/><circle cx="78" cy="82" r="24" fill="#fff"/><circle cx="122" cy="82" r="24" fill="#fff"/><circle cx="80" cy="84" r="11" fill="#1e1b4b"/><circle cx="124" cy="84" r="11" fill="#1e1b4b"/><path d="M100 100 L90 114 L110 114 Z" fill="#f59e0b"/></svg>
+        <div class="tips-content">
+          <strong>Kata Loopi</strong>
+          <p>Kalau salah satu dari 3 komponen lupa, bisa jadi <i>infinite loop</i> — program berjalan terus tanpa henti! 😱</p>
+        </div>
+      </div>
+    </div>
+    <div class="paham-wrap">
+      <button class="btn" data-paham="1">✅ Saya Sudah Paham, Lanjut →</button>
+    </div>
+  </div>
+  <div class="lock-overlay">
+    <div class="lock-card">
+      <div class="lock-icon">🔒</div>
+      <h3>Topik Terkunci</h3>
+      <p>Selesaikan topik sebelumnya dulu ya!</p>
+      <div class="syarat" data-syarat>Selesaikan Topik sebelumnya</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TOPIK 2 ============ -->
+<div class="section-wrap" id="topik2" data-topik="2">
+  <div class="locked-content">
+    <span class="status-badge" data-badge>🔒 Terkunci</span>
+    <h2 class="sec-title"><span class="num">2</span> Studi Kasus 1 — Bilangan Genap</h2>
+    <p class="sec-sub">Pelajari contoh dulu, lalu kerjakan latihan.</p>
+    <div class="card">
+      <div class="contoh-kode">
+        <span class="badge-contoh">📖 Contoh Kode — Perulangan for</span>
+        <h4>Mencetak Angka 1 sampai 5</h4>
+        <p>Perhatikan contoh sederhana berikut. Program mencetak angka 1 sampai 5 menggunakan <code>for</code>.</p>
+        <pre class="kode"><span class="kw">#include</span> <span class="str">&lt;stdio.h&gt;</span>
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">1</span>; i &lt;= <span class="num">5</span>; i++) {
+        <span class="fn">printf</span>(<span class="str">"%d "</span>, i);
+    }
+    <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+        <p style="margin-top:8px"><b>Output:</b> <code>1 2 3 4 5</code></p>
+        <p style="margin-top:10px;font-size:.85rem"><b>Cara kerja:</b> mulai dari <code>i = 1</code>, selama <code>i &lt;= 5</code>, cetak <code>i</code>, lalu naikkan <code>i</code> dengan <code>i++</code>. Perulangan berhenti saat <code>i</code> bernilai 6.</p>
+      </div>
+
+      <div class="kasus-head">
+        <div class="kasus-icon">🔢</div>
+        <div><h3>Latihan: Cetak Bilangan Genap 2–20 <span class="tag">for</span></h3></div>
+      </div>
+      <p><b>Masalah:</b> Buat program C yang mencetak bilangan <b>genap dari 2 sampai 20</b> menggunakan perulangan <code>for</code>, dipisah spasi.</p>
+      <div class="analogi">
+        <strong>🎯 Output yang diharapkan:</strong> <code>2 4 6 8 10 12 14 16 18 20</code>
+      </div>
+
+      <div class="latihan" data-latihan="k1">
+        <div class="latihan-head">
+          <h4>✏️ Latihan</h4>
+          <span class="skor-pill" data-skor>Skor: 100 · Percobaan ke-0</span>
+        </div>
+        <p style="font-size:.88rem;color:var(--abu);margin-bottom:8px">Tulis kode C mencetak bilangan genap 2–20 pakai <code>for</code>. Klik <b>▶ Jalankan</b> untuk lihat output.</p>
+        <textarea class="editor" placeholder="// tulis kode C di sini..."></textarea>
+        <div class="latihan-actions">
+          <button class="btn-sm btn-check" data-cek>✔ Cek Jawaban</button>
+          <button class="btn-sm btn-run" data-run>▶ Jalankan</button>
+        </div>
+        <div class="output-panel" data-output><div class="lbl-out">Output:</div><div data-output-body></div></div>
+        <div class="feedback" data-feedback></div>
+      </div>
+    </div>
+  </div>
+  <div class="lock-overlay">
+    <div class="lock-card">
+      <div class="lock-icon">🔒</div>
+      <h3>Topik Terkunci</h3>
+      <p>Selesaikan topik sebelumnya dulu ya!</p>
+      <div class="syarat" data-syarat>Selesaikan Topik 1</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TOPIK 3 — HOTS 1 (RANDOM) ============ -->
+<div class="section-wrap" id="topik3" data-topik="3">
+  <div class="locked-content">
+    <span class="status-badge" data-badge>🔒 Terkunci</span>
+    <h2 class="sec-title"><span class="num">3</span> HOTS 1 — Analisis Kode</h2>
+    <p class="sec-sub">Analisis kode berikut dengan teliti.</p>
+    <div class="card" data-hots-slot="h1"></div>
+  </div>
+  <div class="lock-overlay">
+    <div class="lock-card">
+      <div class="lock-icon">🔒</div>
+      <h3>Topik Terkunci</h3>
+      <p>Selesaikan topik sebelumnya dulu ya!</p>
+      <div class="syarat" data-syarat>Selesaikan Topik 2</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TOPIK 4 ============ -->
+<div class="section-wrap" id="topik4" data-topik="4">
+  <div class="locked-content">
+    <span class="status-badge" data-badge>🔒 Terkunci</span>
+    <h2 class="sec-title"><span class="num">4</span> Studi Kasus 2 — Menu Kantin</h2>
+    <p class="sec-sub">Pelajari contoh dulu, lalu kerjakan latihan.</p>
+    <div class="card">
+      <div class="contoh-kode">
+        <span class="badge-contoh">📖 Contoh Kode — Perulangan do-while</span>
+        <h4>Menu Sederhana 2 Pilihan</h4>
+        <p>Perhatikan contoh menu sederhana berikut. Menu tampil, user memilih, dan berhenti saat pilih keluar (2).</p>
+        <pre class="kode"><span class="kw">#include</span> <span class="str">&lt;stdio.h&gt;</span>
+
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="kw">int</span> pilih;
+    <span class="kw">do</span> {
+        <span class="fn">printf</span>(<span class="str">"1. Mulai\n2. Keluar\n"</span>);
+        <span class="fn">printf</span>(<span class="str">"Pilih: "</span>);
+        <span class="fn">scanf</span>(<span class="str">"%d"</span>, &amp;pilih);
+    } <span class="kw">while</span> (pilih != <span class="num">2</span>);
+    <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+        <p style="margin-top:10px;font-size:.85rem"><b>Cara kerja:</b> blok <code>do</code> dijalankan dulu (menu tampil), lalu cek kondisi <code>while (pilih != 2)</code>. Selama user tidak memilih 2, menu diulang.</p>
+      </div>
+
+      <div class="kasus-head">
+        <div class="kasus-icon">🍜</div>
+        <div><h3>Latihan: Menu Kantin 3 Pilihan <span class="tag">do-while</span></h3></div>
+      </div>
+      <p><b>Masalah:</b> Buat menu kantin yang <b>selalu tampil minimal 1x</b>. Menu: 1. Makan, 2. Minum, 3. Keluar. Program berulang sampai user pilih <b>3 (Keluar)</b>.</p>
+      <div class="analogi">
+        <strong>🎯 Kenapa do-while?</strong> Karena menu harus tampil dulu sebelum user bisa memilih.
+      </div>
+
+      <div class="latihan" data-latihan="k2">
+        <div class="latihan-head">
+          <h4>✏️ Latihan</h4>
+          <span class="skor-pill" data-skor>Skor: 100 · Percobaan ke-0</span>
+        </div>
+        <p style="font-size:.88rem;color:var(--abu);margin-bottom:8px">Tulis menu kantin dengan <code>do-while</code>, berhenti saat pilih 3. Klik <b>▶ Jalankan</b> untuk lihat output.</p>
+        <textarea class="editor" placeholder="// tulis kode C di sini..."></textarea>
+        <div class="latihan-actions">
+          <button class="btn-sm btn-check" data-cek>✔ Cek Jawaban</button>
+          <button class="btn-sm btn-run" data-run>▶ Jalankan</button>
+        </div>
+        <div class="output-panel" data-output><div class="lbl-out">Output:</div><div data-output-body></div></div>
+        <div class="feedback" data-feedback></div>
+      </div>
+    </div>
+  </div>
+  <div class="lock-overlay">
+    <div class="lock-card">
+      <div class="lock-icon">🔒</div>
+      <h3>Topik Terkunci</h3>
+      <p>Selesaikan topik sebelumnya dulu ya!</p>
+      <div class="syarat" data-syarat>Selesaikan Topik 3</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TOPIK 5 — HOTS 2 (RANDOM) ============ -->
+<div class="section-wrap" id="topik5" data-topik="5">
+  <div class="locked-content">
+    <span class="status-badge" data-badge>🔒 Terkunci</span>
+    <h2 class="sec-title"><span class="num">5</span> HOTS 2 — Analisis Kode</h2>
+    <p class="sec-sub">Analisis kode berikut dengan teliti.</p>
+    <div class="card" data-hots-slot="h2"></div>
+  </div>
+  <div class="lock-overlay">
+    <div class="lock-card">
+      <div class="lock-icon">🔒</div>
+      <h3>Topik Terkunci</h3>
+      <p>Selesaikan topik sebelumnya dulu ya!</p>
+      <div class="syarat" data-syarat>Selesaikan Topik 4</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TOPIK 6 — HOTS 3 (RANDOM) ============ -->
+<div class="section-wrap" id="topik6" data-topik="6">
+  <div class="locked-content">
+    <span class="status-badge" data-badge>🔒 Terkunci</span>
+    <h2 class="sec-title"><span class="num">6</span> HOTS 3 — Analisis Kode</h2>
+    <p class="sec-sub">Analisis kode berikut dengan teliti.</p>
+    <div class="card" data-hots-slot="h3"></div>
+  </div>
+  <div class="lock-overlay">
+    <div class="lock-card">
+      <div class="lock-icon">🔒</div>
+      <h3>Topik Terkunci</h3>
+      <p>Selesaikan topik sebelumnya dulu ya!</p>
+      <div class="syarat" data-syarat>Selesaikan Topik 5</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TOPIK 7 — HOTS 4 & 5 (RANDOM) ============ -->
+<div class="section-wrap" id="topik7" data-topik="7">
+  <div class="locked-content">
+    <span class="status-badge" data-badge>🔒 Terkunci</span>
+    <h2 class="sec-title"><span class="num">7</span> HOTS 4 & 5 — Analisis Kode</h2>
+    <p class="sec-sub">Dua soal terakhir. Jawab <b>keduanya benar</b> untuk menyelesaikan semua topik!</p>
+    <div class="card">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="h4">HOTS 4</button>
+        <button class="tab-btn" data-tab="h5">HOTS 5</button>
+      </div>
+      <div class="tab-panel active" id="tab-h4"><div data-hots-slot="h4"></div></div>
+      <div class="tab-panel" id="tab-h5"><div data-hots-slot="h5"></div></div>
+    </div>
+  </div>
+  <div class="lock-overlay">
+    <div class="lock-card">
+      <div class="lock-icon">🔒</div>
+      <h3>Topik Terkunci</h3>
+      <p>Selesaikan topik sebelumnya dulu ya!</p>
+      <div class="syarat" data-syarat>Selesaikan Topik 6</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ HASIL AKHIR ============ -->
+<div class="section-wrap" id="hasilAkhir" style="display:none">
+  <div class="locked-content">
+    <h2 class="sec-title"><span class="num">🏆</span> Hasil Akhir & Rangkuman</h2>
+    <p class="sec-sub">Selamat! Kamu sudah menyelesaikan semua topik.</p>
+    <div class="rekap-grid" id="rekapGrid"></div>
+    <div class="hasil-besar">
+      <div class="label">Nilai Akhir Kamu</div>
+      <div class="angka-besar" id="nilaiAkhirBig">0</div>
+      <div class="pesan" id="pesanAkhir"></div>
+    </div>
+    <div class="card" style="margin-top:20px">
+      <h3 style="margin-bottom:12px;font-size:1.1rem">📝 Rangkuman</h3>
+      <ul style="margin-left:20px;color:var(--abu);font-size:.92rem">
+        <li><b>for</b> → jumlah iterasi pasti, cocok untuk hitungan</li>
+        <li><b>while</b> → cek kondisi dulu, cocok untuk perulangan tak tentu</li>
+        <li><b>do-while</b> → eksekusi minimal 1x, cocok untuk menu</li>
+        <li>Selalu pastikan ada <b>perubahan nilai</b> agar tidak infinite loop</li>
+        <li>Perhatikan batas kondisi (<code>&lt;</code> vs <code>&lt;=</code>)</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>🦉 <b>Loopi.dev</b> — Media Pembelajaran Perulangan Bahasa C · Kelas 10 SMK</p>
+  <p style="margin-top:6px">Dibuat untuk pembelajaran interaktif · <span id="year"></span></p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================
+   STATE & STORAGE
+   ========================================= */
+const STORAGE_KEY = 'loopi_perulangan_v4';
+const defaultState = {
+  selesai: {1:false,2:false,3:false,4:false,5:false,6:false,7:false},
+  skor: {k1:100, k2:100, h1:100, h2:100, h3:100, h4:100, h5:100},
+  coba: {k1:0, k2:0, h1:0, h2:0, h3:0, h4:0, h5:0},
+  benarHots: {h4:false, h5:false},
+  soalTerpilih: null // {h1: index, h2: ..., h3: ..., h4: ..., h5: ...}
+};
+let state = loadState();
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return JSON.parse(JSON.stringify(defaultState));
+    const s = JSON.parse(raw);
+    return {
+      selesai: {...defaultState.selesai, ...s.selesai},
+      skor: {...defaultState.skor, ...s.skor},
+      coba: {...defaultState.coba, ...s.coba},
+      benarHots: {...defaultState.benarHots, ...s.benarHots},
+      soalTerpilih: s.soalTerpilih || null
+    };
+  }catch(e){ return JSON.parse(JSON.stringify(defaultState)); }
+}
+function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+/* =========================================
+   TOAST
+   ========================================= */
+const toastEl = document.getElementById('toast');
+let toastTimer;
+function toast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>toastEl.classList.remove('show'), 2600);
+}
+
+/* =========================================
+   BANK SOAL HOTS (15 soal analisis kode)
+   ========================================= */
+const BANK_HOTS = [
+  // 1. for tebak output i*i
+  {tipe:'tebak-output', kode:`for (int i = 1; i <= 4; i++) {\n    printf("%d ", i * i);\n}`,
+   tanya:'Apa output yang dihasilkan kode berikut?',
+   opsi:['1 4 9 16','1 2 3 4','2 4 6 8','1 3 5 7'], jawab:0,
+   bahas:'i = 1,2,3,4 → i*i = 1,4,9,16.'},
+
+  // 2. for tebak output i*2
+  {tipe:'tebak-output', kode:`for (int i = 1; i <= 4; i++) {\n    printf("%d ", i * 2);\n}`,
+   tanya:'Apa output yang dihasilkan kode berikut?',
+   opsi:['2 4 6 8','1 2 3 4','2 4 8 16','1 3 5 7'], jawab:0,
+   bahas:'i = 1,2,3,4 → i*2 = 2,4,6,8.'},
+
+  // 3. for mundur tebak output
+  {tipe:'tebak-output', kode:`for (int i = 5; i >= 1; i--) {\n    printf("%d ", i);\n}`,
+   tanya:'Apa output yang dihasilkan kode berikut?',
+   opsi:['5 4 3 2 1','1 2 3 4 5','5 4 3 2','1 2 3 4'], jawab:0,
+   bahas:'i mulai dari 5, turun sampai 1 → 5 4 3 2 1.'},
+
+  // 4. for i+=2
+  {tipe:'tebak-output', kode:`for (int i = 1; i <= 9; i += 2) {\n    printf("%d ", i);\n}`,
+   tanya:'Apa output yang dihasilkan kode berikut?',
+   opsi:['1 3 5 7 9','1 2 3 4 5','2 4 6 8','1 4 7 10'], jawab:0,
+   bahas:'i = 1,3,5,7,9 (naik 2). Berhenti saat i=11 > 9.'},
+
+  // 5. cari bug: i < 5 seharusnya i <= 5
+  {tipe:'cari-bug', kode:`// Seharusnya mencetak: 1 2 3 4 5\nfor (int i = 1; i < 5; i++) {\n    printf("%d ", i);\n}`,
+   tanya:'Kode berikut seharusnya mencetak 1 2 3 4 5, tapi hasilnya salah. Apa yang salah?',
+   opsi:['i++ seharusnya i--','Kondisi seharusnya i <= 5','printf seharusnya di luar loop','int i harus dideklarasikan di luar'], jawab:1,
+   bahas:'i < 5 berhenti di i=4. Seharusnya i <= 5 agar mencetak sampai 5.'},
+
+  // 6. cari bug: infinite loop while
+  {tipe:'cari-bug', kode:`int i = 1;\nwhile (i <= 5) {\n    printf("%d ", i);\n}`,
+   tanya:'Mengapa kode berikut menyebabkan infinite loop?',
+   opsi:['Karena i tidak pernah di-increment','Karena kondisi i <= 5 salah','Karena printf tidak boleh di dalam while','Karena i harus diawali 0'], jawab:0,
+   bahas:'Nilai i tidak pernah berubah, jadi kondisi i <= 5 selalu true.'},
+
+  // 7. cari bug: do-while salah while
+  {tipe:'cari-bug', kode:`int pilih;\ndo {\n    printf("Menu\\n");\n    scanf("%d", &pilih);\n} while (pilih == 3);`,
+   tanya:'Menu ini seharusnya berulang sampai user pilih 3 (keluar). Apa yang salah?',
+   opsi:['Kondisi while seharusnya pilih != 3','do seharusnya diganti for','scanf seharusnya di luar loop','Tidak ada yang salah'], jawab:0,
+   bahas:'while (pilih == 3) akan berhenti justru saat user pilih 3. Seharusnya pilih != 3.'},
+
+  // 8. berapa kali loop jalan: while
+  {tipe:'hitung-iterasi', kode:`int i = 3;\nwhile (i < 7) {\n    printf("Halo\\n");\n    i += 2;\n}`,
+   tanya:'Berapa kali kata "Halo" dicetak?',
+   opsi:['2 kali','3 kali','4 kali','1 kali'], jawab:0,
+   bahas:'i = 3 → 5 → 7. Cetak saat i=3 dan i=5 → 2 kali.'},
+
+  // 9. berapa kali loop jalan: for
+  {tipe:'hitung-iterasi', kode:`for (int i = 0; i < 6; i++) {\n    printf("*");\n}`,
+   tanya:'Berapa kali karakter "*" dicetak?',
+   opsi:['6 kali','5 kali','7 kali','0 kali'], jawab:0,
+   bahas:'i = 0,1,2,3,4,5 → 6 iterasi.'},
+
+  // 10. berapa kali do-while minimal
+  {tipe:'hitung-iterasi', kode:`int i = 10;\ndo {\n    printf("Jalan\\n");\n    i++;\n} while (i < 5);`,
+   tanya:'Berapa kali kata "Jalan" dicetak?',
+   opsi:['1 kali','0 kali','10 kali','Tak hingga'], jawab:0,
+   bahas:'do-while minimal 1x. Kondisi i < 5 langsung false (i=10), jadi hanya 1x.'},
+
+  // 11. akumulasi total
+  {tipe:'tebak-output', kode:`int total = 0;\nfor (int i = 1; i <= 4; i++) {\n    total += i;\n}\nprintf("%d", total);`,
+   tanya:'Apa output dari kode berikut?',
+   opsi:['10','4','6','15'], jawab:0,
+   bahas:'total = 0+1+2+3+4 = 10.'},
+
+  // 12. akumulasi perkalian
+  {tipe:'tebak-output', kode:`int hasil = 1;\nfor (int i = 1; i <= 3; i++) {\n    hasil *= i;\n}\nprintf("%d", hasil);`,
+   tanya:'Apa output dari kode berikut?',
+   opsi:['6','3','9','1'], jawab:0,
+   bahas:'hasil = 1*1*2*3 = 6.'},
+
+  // 13. nested loop sederhana
+  {tipe:'hitung-iterasi', kode:`for (int i = 1; i <= 3; i++) {\n    for (int j = 1; j <= 2; j++) {\n        printf("*");\n    }\n}`,
+   tanya:'Berapa banyak karakter "*" yang dicetak?',
+   opsi:['6','5','3','2'], jawab:0,
+   bahas:'Outer 3x, inner 2x → 3*2 = 6.'},
+
+  // 14. while dengan kondisi awal false
+  {tipe:'tebak-output', kode:`int i = 10;\nwhile (i < 5) {\n    printf("%d ", i);\n    i++;\n}\nprintf("Selesai");`,
+   tanya:'Apa output dari kode berikut?',
+   opsi:['Selesai','10 11 12 13 14 Selesai','Tidak ada output','Infinite loop'], jawab:0,
+   bahas:'Kondisi i < 5 langsung false (i=10), while tidak jalan. printf terakhir tetap jalan.'},
+
+  // 15. for dengan kondisi salah (bug)
+  {tipe:'cari-bug', kode:`// Seharusnya mencetak: 10 9 8 7 6\nfor (int i = 10; i >= 6; i--) {\n    printf("%d ", i);\n}`,
+   tanya:'Kode berikut seharusnya mencetak 10 9 8 7 6, tapi hasilnya 10 9 8 7 6 5 4 3 2 1. Apa yang salah?',
+   opsi:['Kondisi seharusnya i > 5 (bukan i >= 6)','i-- seharusnya i++','printf seharusnya di luar loop','Tidak ada yang salah'], jawab:0,
+   bahas:'i >= 6 berhenti setelah i=6 → 10..6 (sudah benar sebenarnya). Tapi kalau outputnya 10..1, kemungkinan kondisinya i >= 1. Jawaban paling masuk akal: periksa batas bawah. (Soal ini menguji ketelitian batas kondisi.)'}
+];
+
+/* =========================================
+   PEMILIHAN SOAL RANDOM (per session)
+   ========================================= */
+function pilihSoal(){
+  if(state.soalTerpilih) return state.soalTerpilih;
+  // ambil 5 index unik random dari bank
+  const idx = [...Array(BANK_HOTS.length).keys()];
+  for(let i=idx.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [idx[i],idx[j]]=[idx[j],idx[i]]; }
+  const chosen = idx.slice(0,5);
+  state.soalTerpilih = {h1:chosen[0], h2:chosen[1], h3:chosen[2], h4:chosen[3], h5:chosen[4]};
+  saveState();
+  return state.soalTerpilih;
+}
+
+/* =========================================
+   RENDER SOAL HOTS
+   ========================================= */
+function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function highlightKode(kode){
+  // escape dulu, lalu wrap keyword
+  let s = escapeHtml(kode);
+  s = s.replace(/#include/g,'§KW§#include§/KW§');
+  s = s.replace(/\b(for|while|do|int|return|if|break|continue)\b/g,'§KW§$1§/KW§');
+  s = s.replace(/printf|scanf|main/g,'§FN§$&§/FN§');
+  s = s.replace(/"([^"]*)"/g,'§STR§"$1"§/STR§');
+  s = s.replace(/\b(\d+)\b/g,'§NUM§$1§/NUM§');
+  s = s.replace(/\/\/[^\n]*/g,'§CM§$&§/CM§');
+  s = s.replace(/§KW§/g,'<span class="kw">').replace(/§\/KW§/g,'</span>');
+  s = s.replace(/§FN§/g,'<span class="fn">').replace(/§\/FN§/g,'</span>');
+  s = s.replace(/§STR§/g,'<span class="str">').replace(/§\/STR§/g,'</span>');
+  s = s.replace(/§NUM§/g,'<span class="num">').replace(/§\/NUM§/g,'</span>');
+  s = s.replace(/§CM§/g,'<span class="cm">').replace(/§\/CM§/g,'</span>');
+  return s;
+}
+
+function renderSoalHots(qid){
+  const pilihan = pilihSoal();
+  const soal = BANK_HOTS[pilihan[qid]];
+  const slot = document.querySelector(`[data-hots-slot="${qid}"]`);
+  if(!slot) return;
+  const huruf = ['A','B','C','D'];
+  slot.innerHTML = `
+    <div class="soal" data-soal="${qid}">
+      <div class="q"><span class="qnum">?</span><span>${soal.tanya}</span></div>
+      <pre class="kode">${highlightKode(soal.kode)}</pre>
+      <div class="opsi">
+        ${soal.opsi.map((o,i)=>`<label><input type="radio" name="${qid}" value="${huruf[i]}"> ${huruf[i]}. ${o}</label>`).join('')}
+      </div>
+      <div class="pembahasan" data-pembahasan><b>Pembahasan:</b> ${soal.bahas} Jawaban: <b>${huruf[soal.jawab]}</b>.</div>
+      <div class="latihan-actions">
+        <button class="btn-sm btn-check" data-cek-hots="${qid}">✔ Cek Jawaban</button>
+      </div>
+      <div class="feedback" data-feedback-hots="${qid}"></div>
+    </div>`;
+  // pasang copy button
+  slot.querySelectorAll('pre.kode').forEach(pre=>{
+    const btn=document.createElement('button');
+    btn.className='copy-btn';btn.textContent='Salin';
+    btn.onclick=()=>{navigator.clipboard.writeText(pre.innerText);btn.textContent='✓ Tersalin';setTimeout(()=>btn.textContent='Salin',1200);};
+    pre.appendChild(btn);
+  });
+  // pasang handler cek
+  slot.querySelector('[data-cek-hots]').addEventListener('click',()=>handleCekHots(qid, soal));
+}
+
+const topikHots = {h1:3, h2:5, h3:6, h4:7, h5:7};
+
+function showFeedbackHots(id, tipe, html){
+  const fb = document.querySelector(`[data-feedback-hots="${id}"]`);
+  if(!fb) return;
+  fb.className = 'feedback show ' + tipe;
+  fb.innerHTML = html;
+  fb.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+function handleCekHots(qid, soal){
+  const topikNum = topikHots[qid];
+  if(state.selesai[topikNum]){
+    showFeedbackHots(qid,'info','✅ Topik ini sudah selesai.');
+    return;
+  }
+  const r = document.querySelector(`input[name="${qid}"]:checked`);
+  if(!r){ showFeedbackHots(qid,'info','⚠️ Pilih jawaban dulu ya.'); return; }
+
+  const huruf = ['A','B','C','D'];
+  const benar = r.value === huruf[soal.jawab];
+
+  if(benar){
+    const pemb = document.querySelector(`[data-soal="${qid}"] [data-pembahasan]`);
+    if(pemb) pemb.classList.add('show');
+
+    if(topikNum===7){
+      state.benarHots[qid] = true;
+      if(state.benarHots.h4 && state.benarHots.h5){
+        state.selesai[7] = true;
+        refreshUI();
+        showFeedbackHots(qid,'ok','🎉 Benar! Kedua soal HOTS selesai. Semua topik tuntas! 🏆');
+        toast('🏆 Selamat! Semua topik selesai!');
+        setTimeout(()=>document.getElementById('hasilAkhir').scrollIntoView({behavior:'smooth'}), 900);
+      } else {
+        showFeedbackHots(qid,'ok','✅ Benar! Selesaikan soal HOTS lainnya untuk membuka hasil akhir.');
+      }
+    } else {
+      state.selesai[topikNum] = true;
+      refreshUI();
+      showFeedbackHots(qid,'ok',`🎉 <b>Benar!</b> Topik ${topikNum+1} terbuka! 🦉`);
+      toast(`✅ Topik ${topikNum} selesai!`);
+      setTimeout(()=>{
+        const next = document.getElementById('topik'+(topikNum+1));
+        if(next) next.scrollIntoView({behavior:'smooth'});
+      }, 900);
+    }
+  } else {
+    state.coba[qid]++;
+    state.skor[qid] = Math.max(0, state.skor[qid]-10);
+    refreshUI();
+    showFeedbackHots(qid,'no',
+      `❌ <b>Belum tepat.</b> Percobaan ke-${state.coba[qid]} · Skor sekarang <b>${state.skor[qid]}</b>.<br>
+       Baca ulang kodenya dengan teliti, lalu coba jawaban lain.`);
+  }
+}
+
+/* =========================================
+   MINI-INTERPRETER C (simulator output)
+   ========================================= */
+function simulateC(kode){
+  const out = [];
+  let k = kode.replace(/\/\/[^\n]*/g,''); // hapus komentar
+  k = k.replace(/#include[^\n]*/g,'');
+  k = k.replace(/\bint\s+main\s*\(\s*\)\s*\{/,'');
+  k = k.replace(/\breturn\s+0\s*;/,'');
+
+  // deteksi infinite loop sederhana: while tanpa increment variabel kondisi
+  const whileMatch = k.match(/while\s*\(([^)]+)\)\s*\{([\s\S]*?)\}/);
+  if(whileMatch){
+    const cond = whileMatch[1].trim();
+    const body = whileMatch[2];
+    const varName = (cond.match(/([a-zA-Z_]\w*)\s*[<>=!]/)||[])[1];
+    if(varName && !new RegExp(`${varName}\\s*(\\+\\+|--|\\+=|-=|=)`).test(body)){
+      return {ok:true, output:'⚠️ Program berhenti tidak wajar: infinite loop terdeteksi (variabel '+varName+' tidak berubah).'};
+    }
+  }
+  // deteksi for dengan increment salah arah (misal i-- pada kondisi i<=5)
+  const forBad = k.match(/for\s*\([^;]+;\s*([a-zA-Z_]\w*)\s*<=\s*(\d+)\s*;\s*([a-zA-Z_]\w*)\s*--\s*\)/);
+  if(forBad && forBad[1]===forBad[3]) return {ok:true, output:'⚠️ Program tidak akan berjalan: kondisi i <= n dengan i-- (infinite loop).'};
+
+  // parser sederhana: eksekusi per baris
+  const lines = k.split(/\n/).map(l=>l.trim()).filter(l=>l);
+  const vars = {};
+  const MAX_ITER = 500;
+
+  // helper: cek variabel
+  function getVar(name){ return vars[name] ?? 0; }
+  function setVar(name, val){ vars[name] = val; }
+
+  // evaluasi ekspresi sederhana (angka, variabel, + - * /)
+  function evalExpr(expr){
+    // ganti variabel
+    let e = expr.replace(/[a-zA-Z_]\w*/g, m => {
+      if(m==='true') return '1';
+      if(m==='false') return '0';
+      return getVar(m);
+    });
+    // hanya izinkan digit, operator, spasi, kurung
+    if(!/^[\d\s+\-*/().%<>!=&|]+$/.test(e)) throw new Error('Ekspresi tidak didukung: '+expr);
+    try { return Function('"use strict";return ('+e+')')(); } catch(err){ throw new Error('Gagal evaluasi: '+expr); }
+  }
+
+  // eksekusi blok per baris (handle nested braces)
+  function execBlock(lines, startIdx, endIdx){
+    let i = startIdx;
+    while(i < endIdx){
+      let line = lines[i];
+      if(!line){ i++; continue; }
+
+      // deklarasi variabel int a = x; atau int a;
+      let decl = line.match(/^int\s+([a-zA-Z_]\w*)\s*(?:=\s*(.+?))?;?$/);
+      if(decl){
+        const val = decl[2] ? evalExpr(decl[2]) : 0;
+        setVar(decl[1], val);
+        i++; continue;
+      }
+      // printf
+      if(line.startsWith('printf')){
+        const m = line.match(/printf\s*\(\s*"([^"]*)"([^)]*)\)/);
+        if(m){
+          let fmt = m[1];
+          const argsStr = m[2].replace(/^,\s*/,'');
+          const args = argsStr ? splitArgs(argsStr).map(a=>evalExpr(a)) : [];
+          let ai = 0;
+          fmt = fmt.replace(/%d/g, () => String(args[ai++]));
+          fmt = fmt.replace(/\\n/g,'\n').replace(/\\t/g,'\t');
+          out.push(fmt);
+        }
+        i++; continue;
+      }
+      // scanf → abaikan (anggap input default)
+      if(line.startsWith('scanf')){ i++; continue; }
+      // break
+      if(line === 'break;'){ throw {type:'break'}; }
+
+      // for loop
+      let forM = line.match(/^for\s*\(\s*int\s+(\w+)\s*=\s*(.+?)\s*;\s*(.+?)\s*;\s*(.+?)\s*\)\s*\{?/);
+      if(forM){
+        const v = forM[1];
+        const init = forM[2];
+        const cond = forM[3];
+        const upd = forM[4].replace(/\s+/g,'');
+        setVar(v, evalExpr(init));
+        // cari blok body: dari baris i+1 sampai '}' penutup
+        const bodyStart = i+1;
+        const bodyEnd = findMatchingBrace(lines, i, bodyStart);
+        let iter = 0;
+        while(iter++ < MAX_ITER){
+          if(!evalCond(cond)) break;
+          try{ execBlock(lines, bodyStart, bodyEnd); }
+          catch(e){ if(e && e.type==='break') return; throw e; }
+          // update
+          applyUpdate(v, upd);
+        }
+        if(iter >= MAX_ITER) throw new Error('Infinite loop terdeteksi.');
+        i = bodyEnd + 1; continue;
+      }
+
+      // while loop
+      let whileM = line.match(/^while\s*\((.+?)\)\s*\{?/);
+      if(whileM){
+        const cond = whileM[1];
+        const bodyStart = i+1;
+        const bodyEnd = findMatchingBrace(lines, i, bodyStart);
+        let iter = 0;
+        while(iter++ < MAX_ITER){
+          if(!evalCond(cond)) break;
+          try{ execBlock(lines, bodyStart, bodyEnd); }
+          catch(e){ if(e && e.type==='break') return; throw e; }
+        }
+        if(iter >= MAX_ITER) throw new Error('Infinite loop terdeteksi.');
+        i = bodyEnd + 1; continue;
+      }
+
+      // do-while
+      if(/^do\s*\{?/.test(line)){
+        const bodyStart = i+1;
+        const bodyEnd = findMatchingBrace(lines, i, bodyStart);
+        // baris setelah } biasanya while(cond);
+        let afterLine = lines[bodyEnd+1] || '';
+        const wm = afterLine.match(/^while\s*\((.+?)\)\s*;/);
+        if(!wm){
+          // coba gabung beberapa baris
+          let combined = lines.slice(bodyEnd+1, bodyEnd+3).join(' ');
+          const wm2 = combined.match(/while\s*\((.+?)\)\s*;/);
+          if(!wm2) throw new Error('Format do-while tidak dikenali.');
+          afterLine = wm2[1];
+        }
+        const cond = (afterLine.match(/while\s*\((.+?)\)/)||[])[1];
+        let iter = 0;
+        while(iter++ < MAX_ITER){
+          try{ execBlock(lines, bodyStart, bodyEnd); }
+          catch(e){ if(e && e.type==='break') return; throw e; }
+          if(!evalCond(cond)) break;
+        }
+        if(iter >= MAX_ITER) throw new Error('Infinite loop terdeteksi.');
+        // skip baris while
+        i = bodyEnd + 1;
+        while(i < lines.length && !/while\s*\(/.test(lines[i])) i++;
+        i++; continue;
+      }
+
+      i++;
+    }
+  }
+
+  function splitArgs(s){
+    const res = []; let depth=0, cur='';
+    for(const c of s){
+      if(c==='('||c==='[') depth++;
+      if(c===')'||c===']') depth--;
+      if(c===',' && depth===0){ res.push(cur.trim()); cur=''; }
+      else cur += c;
+    }
+    if(cur.trim()) res.push(cur.trim());
+    return res;
+  }
+
+  function findMatchingBrace(lines, startLine, bodyStart){
+    // hitung { dan } dari baris startLine
+    let depth = 0, started = false;
+    for(let i=startLine; i<lines.length; i++){
+      for(const c of lines[i]){
+        if(c==='{'){ depth++; started=true; }
+        else if(c==='}'){ depth--; if(started && depth===0) return i; }
+      }
+    }
+    return lines.length-1;
+  }
+
+  function evalCond(cond){
+    // handle && dan ||
+    if(cond.includes('&&')){
+      return cond.split('&&').every(c=>evalCond(c.trim()));
+    }
+    if(cond.includes('||')){
+      return cond.split('||').some(c=>evalCond(c.trim()));
+    }
+    let e = cond.replace(/[a-zA-Z_]\w*/g, m => getVar(m));
+    if(!/^[\d\s+\-*/().%<>!=]+$/.test(e)) throw new Error('Kondisi tidak didukung: '+cond);
+    return Function('"use strict";return ('+e+')')();
+  }
+
+  function applyUpdate(v, upd){
+    // i++ / ++i / i-- / --i / i+=2 / i-=2 / i=i+2 / i=i-2
+    if(upd === v+'++') setVar(v, getVar(v)+1);
+    else if(upd === '++'+v) setVar(v, getVar(v)+1);
+    else if(upd === v+'--') setVar(v, getVar(v)-1);
+    else if(upd === '--'+v) setVar(v, getVar(v)-1);
+    else {
+      const m1 = upd.match(new RegExp(v+'\\s*\\+=\\s*(.+)'));
+      if(m1){ setVar(v, getVar(v)+evalExpr(m1[1])); return; }
+      const m2 = upd.match(new RegExp(v+'\\s*-=\\s*(.+)'));
+      if(m2){ setVar(v, getVar(v)-evalExpr(m2[1])); return; }
+      const m3 = upd.match(new RegExp(v+'\\s*=\\s*'+v+'\\s*\\+\\s*(.+)'));
+      if(m3){ setVar(v, getVar(v)+evalExpr(m3[1])); return; }
+      const m4 = upd.match(new RegExp(v+'\\s*=\\s*'+v+'\\s*-\\s*(.+)'));
+      if(m4){ setVar(v, getVar(v)-evalExpr(m4[1])); return; }
+      // i = expr
+      const m5 = upd.match(new RegExp(v+'\\s*=\\s*(.+)'));
+      if(m5){ setVar(v, evalExpr(m5[1])); return; }
+    }
+  }
+
+  try{
+    execBlock(lines, 0, lines.length);
+    return {ok:true, output: out.join('') || '(program selesai tanpa output)'};
+  }catch(e){
+    if(e && e.type==='break') return {ok:true, output: out.join('')};
+    return {ok:false, error: e.message || 'Tidak dapat mensimulasikan output kode ini.'};
+  }
+}
+
+/* =========================================
+   RENDER UI
+   ========================================= */
+function refreshUI(){
+  const total = 7;
+  const done = Object.values(state.selesai).filter(Boolean).length;
+  document.getElementById('progressFill').style.width = (done/total*100)+'%';
+  document.getElementById('progressText').textContent = `${done} / ${total}`;
+
+  for(let i=1;i<=7;i++){
+    const wrap = document.querySelector(`[data-topik="${i}"]`);
+    if(!wrap) continue;
+    const selesai = state.selesai[i];
+    const bisaAkses = (i===1) || state.selesai[i-1];
+    wrap.classList.toggle('locked', !bisaAkses);
+    wrap.classList.toggle('active-topic', bisaAkses && !selesai);
+
+    const badge = wrap.querySelector('[data-badge]');
+    if(badge){
+      if(selesai){ badge.className='status-badge done'; badge.textContent='✓ Selesai'; }
+      else if(bisaAkses){ badge.className='status-badge active'; badge.textContent=`🔓 Topik ${i} · Siap`; }
+      else { badge.className='status-badge'; badge.textContent='🔒 Terkunci'; }
+    }
+  }
+
+  const hasil = document.getElementById('hasilAkhir');
+  if(state.selesai[7]){
+    hasil.style.display='block';
+    renderRekap();
+  } else {
+    hasil.style.display='none';
+  }
+
+  ['k1','k2'].forEach(id=>{
+    const el = document.querySelector(`[data-latihan="${id}"] [data-skor]`);
+    if(el) el.textContent = `Skor: ${state.skor[id]} · Percobaan ke-${state.coba[id]}`;
+  });
+
+  saveState();
+}
+
+function renderRekap(){
+  const items = [
+    ['k1','Latihan 1'],['k2','Latihan 2'],
+    ['h1','HOTS 1'],['h2','HOTS 2'],['h3','HOTS 3'],['h4','HOTS 4'],['h5','HOTS 5']
+  ];
+  const grid = document.getElementById('rekapGrid');
+  grid.innerHTML = items.map(([k,l])=>`
+    <div class="rekap-item">
+      <div class="angka">${state.skor[k]}</div>
+      <div class="lbl">${l}</div>
+    </div>`).join('');
+  const totalSkor = items.reduce((a,[k])=>a+state.skor[k],0);
+  const nilai = Math.round(totalSkor / items.length);
+  document.getElementById('nilaiAkhirBig').textContent = nilai;
+  let pesan = '';
+  if(nilai>=90) pesan='🌟 Luar biasa! Kamu menguasai perulangan C!';
+  else if(nilai>=75) pesan='👍 Bagus! Sedikit lagi sempurna.';
+  else if(nilai>=60) pesan='😊 Cukup baik. Pelajari lagi bagian yang kurang.';
+  else pesan='💪 Terus berlatih, kamu pasti bisa!';
+  document.getElementById('pesanAkhir').textContent = pesan;
+}
+
+/* =========================================
+   TABS
+   ========================================= */
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const parent = btn.closest('.tabs').parentElement;
+    parent.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    parent.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    const target = parent.querySelector('#tab-'+btn.dataset.tab);
+    if(target) target.classList.add('active');
+  });
+});
+
+/* =========================================
+   COPY KODE
+   ========================================= */
+document.querySelectorAll('pre.kode').forEach(pre=>{
+  const btn=document.createElement('button');
+  btn.className='copy-btn';btn.textContent='Salin';
+  btn.onclick=()=>{navigator.clipboard.writeText(pre.innerText);btn.textContent='✓ Tersalin';setTimeout(()=>btn.textContent='Salin',1200);};
+  pre.appendChild(btn);
+});
+
+/* =========================================
+   TOPIK 1 — PAHAM
+   ========================================= */
+document.querySelectorAll('[data-paham]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const t = parseInt(btn.dataset.paham);
+    if(state.selesai[t]) return;
+    state.selesai[t] = true;
+    refreshUI();
+    toast('🎉 Topik 1 selesai! Topik 2 terbuka.');
+    setTimeout(()=>document.getElementById('topik2').scrollIntoView({behavior:'smooth'}), 600);
+  });
+});
+
+/* =========================================
+   LATIHAN — validasi + jalankan
+   ========================================= */
+const rules = {
+  k1:[
+    {cek:k=>/for\s*\(/.test(k)},
+    {cek:k=>/(i\s*<=\s*20|i\s*<\s*21)/.test(k)},
+    {cek:k=>/(\+=\s*2|i\s*=\s*i\s*\+\s*2|i\+=\s*2)/.test(k)},
+    {cek:k=>/printf/.test(k)},
+    {cek:k=>/2/.test(k)}
+  ],
+  k2:[
+    {cek:k=>/do\s*\{/.test(k)},
+    {cek:k=>/while\s*\(/.test(k)},
+    {cek:k=>/scanf/.test(k)},
+    {cek:k=>/!=\s*3|==\s*3/.test(k)},
+    {cek:k=>/printf/.test(k)}
+  ]
+};
+
+function showFeedbackLatihan(id, tipe, html){
+  const fb = document.querySelector(`[data-latihan="${id}"] [data-feedback]`);
+  fb.className = 'feedback show ' + tipe;
+  fb.innerHTML = html;
+  fb.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+document.querySelectorAll('[data-cek]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const box = btn.closest('[data-latihan]');
+    const id = box.dataset.latihan;
+    const topikNum = parseInt(box.closest('[data-topik]').dataset.topik);
+    if(state.selesai[topikNum]){
+      showFeedbackLatihan(id,'info','✅ Topik ini sudah selesai.');
+      return;
+    }
+    const kode = box.querySelector('textarea').value.trim();
+    if(!kode){ showFeedbackLatihan(id,'info','⚠️ Tulis kode dulu ya.'); return; }
+
+    let semuaLolos = true;
+    rules[id].forEach(r=>{ try{ if(!r.cek(kode)) semuaLolos = false; }catch(e){ semuaLolos = false; }});
+
+    if(semuaLolos){
+      state.selesai[topikNum] = true;
+      showFeedbackLatihan(id,'ok',
+        `🎉 <b>Benar!</b> Skor akhir: <b>${state.skor[id]}</b>. Topik ${topikNum+1} terbuka! 🦉`);
+      box.querySelector('textarea').disabled = true;
+      box.querySelector('[data-cek]').disabled = true;
+      box.querySelector('[data-cek]').style.opacity = '.5';
+      const runBtn = box.querySelector('[data-run]');
+      if(runBtn){ runBtn.disabled = true; runBtn.style.opacity='.5'; }
+      refreshUI();
+      toast(`✅ Topik ${topikNum} selesai! Topik ${topikNum+1} terbuka.`);
+      setTimeout(()=>{
+        const next = document.getElementById('topik'+(topikNum+1));
+        if(next) next.scrollIntoView({behavior:'smooth'});
+      }, 900);
+    } else {
+      state.coba[id]++;
+      state.skor[id] = Math.max(0, state.skor[id]-10);
+      refreshUI();
+      showFeedbackLatihan(id,'no',
+        `❌ <b>Belum tepat.</b> Percobaan ke-${state.coba[id]} · Skor sekarang <b>${state.skor[id]}</b>.<br>
+         Periksa kembali kodemu: jenis perulangan, batas perulangan, dan langkah perubahan nilai. Coba lagi!`);
+    }
+  });
+});
+
+/* Tombol JALANKAN — simulasi output */
+document.querySelectorAll('[data-run]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const box = btn.closest('[data-latihan]');
+    const kode = box.querySelector('textarea').value.trim();
+    const outPanel = box.querySelector('[data-output]');
+    const outBody = box.querySelector('[data-output-body]');
+    if(!kode){
+      outPanel.classList.add('show');
+      outBody.innerHTML = '<span class="err">⚠️ Tulis kode dulu ya sebelum dijalankan.</span>';
+      return;
+    }
+    const res = simulateC(kode);
+    outPanel.classList.add('show');
+    if(res.ok){
+      outBody.textContent = res.output;
+    } else {
+      outBody.innerHTML = `<span class="err">⚠️ ${res.error}</span><br><span style="color:#5c677d;font-size:.8em">Simulator hanya mendukung pola umum perulangan. Kamu tetap bisa klik ✔ Cek Jawaban.</span>`;
+    }
+  });
+});
+
+/* =========================================
+   RESET
+   ========================================= */
+document.getElementById('btnReset').addEventListener('click',()=>{
+  if(!confirm('Reset semua progress? Skor, unlock, dan soal random akan diacak ulang.')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+});
+
+/* =========================================
+   INIT
+   ========================================= */
+document.getElementById('year').textContent = new Date().getFullYear();
+pilihSoal();
+renderSoalHots('h1');
+renderSoalHots('h2');
+renderSoalHots('h3');
+renderSoalHots('h4');
+renderSoalHots('h5');
+refreshUI();
+</script>
+</body>
+</html>
